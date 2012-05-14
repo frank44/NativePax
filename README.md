@@ -1,12 +1,14 @@
-axembly specifications
+<h1>axembly specifications</h1>
 
-An pure stack based implementation of an assembly-like language with a simple garbage collector.
+An purely stack based implementation of an assembly-like language with a simple garbage collector.
 
-Notes:
-The system stack contains pointers to the actual values in the heap.
-Code must stand and end with the following labels .start & .end
+Notes:<br>
+The system stack contains pointers to the actual values in the heap.<br>
+Code must stand and end with the following labels .start & .end<br>
 
 Commands
+<br>
+
         PUSH {literal_constant | variable_name} - pushes the value specified on the top of the system stack
                 Currently supports - int
 
@@ -27,9 +29,9 @@ Commands
         ADD, SUB, MULT, DIV, MOD - pop the top two stack elements, performs the operation, and pushes the result.
                 Currently supports - int
 
-        PRINT - if given no paramenters it simply prints the top of the stack
+       	PRINT - if given no paramenters it simply prints the top of the stack
               - if you give it a variable name it prints the corresponding value
               - you can also just give it a literal constant
 
-	OP{<, <=, =, >=, >} - comparison operators, pops the top two stack elements, applies the operation, and then pushes the result (0 or 1)
+        OP{<, <=, =, >=, >} - comparison operators, pops the top two stack elements, applies the operation, and then pushes the result (0 or 1)
 	        Currently supports - int        
