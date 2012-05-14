@@ -11,7 +11,7 @@
 using namespace std;
 
 //All of the types and operations that I currently support
-enum Types { INTEGER, DOUBLE };
+enum Types { INTEGER, DOUBLE, STRING };
 enum Operations { ADD, SUB, MULT, DIV, MOD, LESS_THAN, LESS_THAN_OR_EQUAL, EQUAL, GREATER_THAN_OR_EQUAL, GREATER_THAN};
 
 void error(string s)
@@ -42,6 +42,8 @@ struct Object
 			ss << *(int*)ptr;
 		else if (type == DOUBLE)
 			ss << *(double*)ptr;
+		else if (type == STRING)
+			ss <<  "\"" << *(string*)ptr << "\"";
 		else error("Unidentified Object type, cannot print it.");
 
 		return ss.str();
@@ -296,4 +298,13 @@ bool isLabel(string & s) //sanitizes the string in the process
 	}
 
 	return false;
+}
+
+bool isValidString(string s)
+{
+	bool ok = true;
+	for (int i=1; i+1<(int)s.length(); i++)
+		if (s[i] == '"') ok = false;
+
+	return ok && s[0] == '"' && s[(int)s.length()-1] == '"';
 }

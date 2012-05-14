@@ -35,6 +35,20 @@ void handlePush(Tokenizer tk)
 		*ptr = toDouble(s);
 		stk.push(Object(DOUBLE, ptr));
 	}
+	else if (s[0] == '"')
+	{
+		string str = s;
+		for (int i=tk.inx; i<(int)tk.str.length(); i++)
+			str += tk.str[i];
+
+		if (!isValidString(str))
+			error("Push failed, what the hell is -- " + str);
+
+		string * ptr = new string;
+		*ptr = str.substr(1, str.length()-2);
+		stk.push(Object(STRING, ptr));
+	}
+	else error("Push failed, what the hell is - " + s);
 }
 
 void handleLoad(Tokenizer tk)
@@ -97,10 +111,16 @@ void handleRead(Tokenizer tk)
 		cin >> *ptr;
 		stk.push(Object(DOUBLE, ptr));
 	}
+	else if (type == "string")
+	{
+		string * ptr = new string;
+		getline(cin, *ptr);
+		stk.push(Object(STRING, ptr));
+	}
 	else error("Read does not support that type");
 }
 
-void handleOperation(int op)
+void handleOperation(int op, bool isCond = false)
 {
 	if (stk.size() < 2) error("Not enough elements in the stack to perform operation " + toStr(op));
 	Object b = stk.top(); stk.pop();
@@ -108,7 +128,7 @@ void handleOperation(int op)
 
 	if (a.type != b.type) //error("operation requires two objects of the same type\n");
 	{
-		if (a.type == INTEGER && b.type == DOUBLE)
+		if (a.type == INTEGER && b.type == DOUBLE) //upcast a into a double
 		{
 			int * old = (int*)a.ptr;
 			double * val = new double;
@@ -116,12 +136,54 @@ void handleOperation(int op)
 			a = Object(DOUBLE, val);
 			delete old;
 		}
-		else if (a.type == DOUBLE && b.type == INTEGER)
+		else if (a.type == DOUBLE && b.type == INTEGER) //upcast b into a double
 		{
 			int * old = (int*)b.ptr;
 			double * val = new double;
 			*val = (*(int*)old)*1.0;
 			b = Object(DOUBLE, val);
+			delete old;
+		}
+		else if (a.type == STRING) //upcast b into a string
+		{
+			string str;
+			void * old;
+			if (b.type == DOUBLE)
+			{
+				old = (double*)b.ptr;
+				str = toStr(*(double*)b.ptr);
+			}
+			else
+			{
+				old = (int*)b.ptr;
+				str = toStr(*(int*)b.ptr);
+			}
+
+			string * val = new string;
+			*val = str;
+
+			b = Object(STRING, val);
+			delete old;
+		}
+		else if (b.type == STRING)
+		{
+			string str;
+			void * old;
+			if (a.type == DOUBLE)
+			{
+				old = (double*)a.ptr;
+				str = toStr(*(double*)a.ptr);
+			}
+			else
+			{
+				old = (int*)a.ptr;
+				str = toStr(*(int*)a.ptr);
+			}
+
+			string * val = new string;
+			*val = str;
+
+			a = Object(STRING, val);
 			delete old;
 		}
 	}
@@ -167,40 +229,72 @@ void handleOperation(int op)
 	}
 	else if (a.type == DOUBLE)
 	{
-		double * pval = new double;
+		void * pval;
+		if (isCond)
+			pval = new int;
+		else pval = new double;
 
 		if (op == ADD)
-			*pval = *(double*)a.ptr + *(double*)b.ptr;
+			*(double*)pval = *(double*)a.ptr + *(double*)b.ptr;
 		else if (op == SUB)
-			*pval = *(double*)a.ptr - *(double*)b.ptr;
+			*(double*)pval = *(double*)a.ptr - *(double*)b.ptr;
 		else if (op == MULT)
-			*pval = *(double*)a.ptr * *(double*)b.ptr;
+			*(double*)pval = *(double*)a.ptr * *(double*)b.ptr;
 		else if (op == DIV)
 		{
 			if (*(double*)b.ptr == 0) error("Division by ZERO");
-			*pval = *(double*)a.ptr / *(double*)b.ptr;
+			*(double*)pval = *(double*)a.ptr / *(double*)b.ptr;
 		}
 		else if (op == MOD)
 		{
 			if (*(double*)b.ptr == 0) error("Modulo by ZERO");
-			*pval = *(double*)a.ptr - floor(*(double*)a.ptr / *(double*)b.ptr) * *(double*)b.ptr; // (a - a/b*b) == (a = a%b)
+			*(double*)pval = *(double*)a.ptr - floor(*(double*)a.ptr / *(double*)b.ptr) * *(double*)b.ptr; // (a - a/b*b) == (a = a%b)
 		}
 		else if (op == LESS_THAN)
-			*pval = *(double*)a.ptr < *(double*)b.ptr;
+			*(int*)pval = *(double*)a.ptr < *(double*)b.ptr;
 		else if (op == LESS_THAN_OR_EQUAL)
-			*pval = *(double*)a.ptr <= *(double*)b.ptr;
+			*(int*)pval = *(double*)a.ptr <= *(double*)b.ptr;
 		else if (op == EQUAL)
-			*pval = *(double*)a.ptr == *(double*)b.ptr;
+			*(int*)pval = *(double*)a.ptr == *(double*)b.ptr;
 		else if (op == GREATER_THAN_OR_EQUAL)
-			*pval = *(double*)a.ptr >= *(double*)b.ptr;
+			*(int*)pval = *(double*)a.ptr >= *(double*)b.ptr;
 		else if (op == GREATER_THAN)
-			*pval = *(double*)a.ptr > *(double*)b.ptr;
-		else error("int type does not support this operation");
+			*(int*)pval = *(double*)a.ptr > *(double*)b.ptr;
+		else error("Double type does not support this operation");
 
 		if (pointerCt[a.ptr] == 0) delete a.ptr;
 		if (pointerCt[b.ptr] == 0) delete b.ptr;
 
-		stk.push(Object(DOUBLE, pval));
+		if (isCond) stk.push(Object(INTEGER, pval)); //condition operations return INTEGERS {0, 1}
+		else stk.push(Object(DOUBLE, pval)); //arithmetic operations return doubles
+	}
+	else if (a.type == STRING)
+	{
+		void * pval;
+		if (isCond)
+			pval = new int;
+		else pval = new string;
+
+		if (op == ADD)
+			*(string*)pval = *(string*)a.ptr + *(string*)b.ptr;
+		else if (op == LESS_THAN)
+			*(int*)pval = *(string*)a.ptr < *(string*)b.ptr;
+		else if (op == LESS_THAN_OR_EQUAL)
+			*(int*)pval = *(string*)a.ptr <= *(string*)b.ptr;
+		else if (op == EQUAL)
+			*(int*)pval = *(string*)a.ptr == *(string*)b.ptr;
+		else if (op == GREATER_THAN_OR_EQUAL)
+			*(int*)pval = *(string*)a.ptr >= *(string*)b.ptr;
+		else if (op == GREATER_THAN)
+			*(int*)pval = *(string*)a.ptr > *(string*)b.ptr;
+		else error("STRING type does not support this operation");
+
+		if (pointerCt[a.ptr] == 0) delete a.ptr;
+		if (pointerCt[b.ptr] == 0) delete b.ptr;
+
+		if (isCond)
+			stk.push(Object(INTEGER, pval));
+		else stk.push(Object(STRING, pval));
 	}
 	else error("Unidentified type while performing an operation" + toStr(a.type));
 }
@@ -210,17 +304,39 @@ void handlePrint(Tokenizer tk)
 	string s = tk.nextToken();
 
 	if (s == "") //print top of stack
-		cout << stk.top().valToStr() << endl;
+	{
+		if (stk.empty())
+			error("Cannot print top of an empty stack");
+
+		string str = stk.top().valToStr();
+		if (stk.top().type == STRING)
+			cout << str.substr(1, str.length()-2) << endl; //don't print the quotations in a string
+		else cout << str << endl;
+	}
 	else if (isValidVariableName(s))
 	{
 		if (memory.find(s) == memory.end())
 			error("Cannot find variable named - " + s);
 
-		cout << memory[s].valToStr() << endl;
+		string str = memory[s].valToStr();
+
+		if (memory[s].type == STRING)
+			cout << str.substr(1, str.length()-2) << endl; //don't print the quotations
+		else cout << str << endl;
 	}
 	else if (isValidIntConst(s) || isValidDoubleConst(s))
 		cout << s << endl;
-	else error("Cannot print - " + s);
+	else //only other choice left is literal strings
+	{
+		string str = s;
+		for (int i=tk.inx; i<(int)tk.str.length(); i++)
+			str += tk.str[i];
+
+		if (isValidString(str))
+			cout << str.substr(1, str.length()-2) << endl; //don't print the quotations
+		else 
+			error("Cannot print - " + s);
+	}
 }
 
 void handleJump(Tokenizer tk, bool isZero = false)
@@ -322,11 +438,11 @@ int main (int argc, char *argv[])
 		else if (cmd == "MULT") handleOperation(MULT);
 		else if (cmd == "DIV") handleOperation(DIV);
 		else if (cmd == "MOD") handleOperation(MOD);
-		else if (cmd == "OP<") handleOperation(LESS_THAN);
-		else if (cmd == "OP<=") handleOperation(LESS_THAN_OR_EQUAL);
-		else if (cmd == "OP=") handleOperation(EQUAL);
-		else if (cmd == "OP>=") handleOperation(GREATER_THAN_OR_EQUAL);
-		else if (cmd == "OP>") handleOperation(GREATER_THAN);
+		else if (cmd == "OP<") handleOperation(LESS_THAN, true);
+		else if (cmd == "OP<=") handleOperation(LESS_THAN_OR_EQUAL, true);
+		else if (cmd == "OP=") handleOperation(EQUAL, true);
+		else if (cmd == "OP>=") handleOperation(GREATER_THAN_OR_EQUAL, true);
+		else if (cmd == "OP>") handleOperation(GREATER_THAN, true);
 		else if (cmd == "PRINT") handlePrint(tk);
 		else if (cmd == "JMP") handleJump(tk);
 		else if (cmd == "JZ") handleJump(tk, true);

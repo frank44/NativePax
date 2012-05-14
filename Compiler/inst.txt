@@ -1,8 +1,7 @@
 .START
-READ int
-READ double
-OP<
-
+PUSH 125
+PUSH "0000"
+ADD
 EXIT
 
 
