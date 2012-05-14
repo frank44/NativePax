@@ -1,15 +1,4 @@
-#include <iostream>
-#include <cmath>
-#include <string>
-#include <cstdlib>
-#include <cstdio>
-#include <map>
-#include <string>
-#include <fstream>
-#include <stack>
-#include <sstream>
 #include "tools.h"
-
 using namespace std;
 
 const bool DEBUG = true;
@@ -166,15 +155,24 @@ void handlePrint(Tokenizer tk)
 	else error("Cannot print - " + s);
 }
 
-void handleJump(Tokenizer tk)
+void handleJump(Tokenizer tk, bool isZero = false)
 {
 	string label = tk.nextToken();
+	
 	if (jumpLoc.find(label) == jumpLoc.end())
 		error("Cannot JMP to unknown location - " + label);
 
-	pastLoc.push(fin.tellg());
-	fin.clear();
-	fin.seekg(jumpLoc[label], ios::beg);
+	if (isZero && stk.empty())
+		error("Cannot JZ if the system stack is empty - " + label);
+
+	if (!isZero || isZero && *(int*)(stk.top().ptr) == 0) //jump if doing a JMP, or if JZ and top = 0
+	{	
+		pastLoc.push(fin.tellg());
+		fin.clear();
+		fin.seekg(jumpLoc[label], ios::beg);
+
+		if (isZero) stk.pop(); //remove condition from the stack, so you can treat the top of the stack as paramenters to a function
+	}
 }
 
 void handleRet()
@@ -263,6 +261,7 @@ int main (int argc, char *argv[])
 		else if (cmd == "OP>") handleOperation(GREATER_THAN);
 		else if (cmd == "PRINT") handlePrint(tk);
 		else if (cmd == "JMP") handleJump(tk);
+		else if (cmd == "JZ") handleJump(tk, true);
 		else if (cmd == "RET") handleRet();
 		else error("Do not recognize cmd - " + cmd);
 	}

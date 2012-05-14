@@ -39,6 +39,8 @@ Commands
 	        
 	    JMP {label} - jump to the corresponding label.     
 
+        JZ {label} - jump if zero is at the top of the stack, note that if activated the zero is removed during the jump.
+
         RET - jumps back a to just after the previous JMP call
         
         EXIT - stops the program immediately
