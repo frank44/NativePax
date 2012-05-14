@@ -106,7 +106,26 @@ void handleOperation(int op)
 	Object b = stk.top(); stk.pop();
 	Object a = stk.top(); stk.pop();
 
-	if (a.type != b.type) error("operation requires two objects of the same type\n");
+	if (a.type != b.type) //error("operation requires two objects of the same type\n");
+	{
+		if (a.type == INTEGER && b.type == DOUBLE)
+		{
+			int * old = (int*)a.ptr;
+			double * val = new double;
+			*val = (*(int*)old)*1.0;
+			a = Object(DOUBLE, val);
+			delete old;
+		}
+		else if (a.type == DOUBLE && b.type == INTEGER)
+		{
+			int * old = (int*)b.ptr;
+			double * val = new double;
+			*val = (*(int*)old)*1.0;
+			b = Object(DOUBLE, val);
+			delete old;
+		}
+	}
+
 	if (a.ptr == NULL || b.ptr == NULL) error("Null reference while performing operation");
 	
 	if (a.type == INTEGER)

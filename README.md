@@ -6,6 +6,7 @@ Notes:<br>
 The system stack contains pointers to the actual values in the heap.<br>
 Code must stand and end with the following labels .start & .end<br>
 Labels are lines with a single token than begins with a '.'<br>
+You are allowed to mix ints and doubles in operations, your answer will simply be casted to doubles
 
 Commands
 <br>

@@ -1,8 +1,7 @@
 .START
-PUSH 3.5
-PUSH 3.5
-MULT
-PRINT 3.141592
+READ int
+READ double
+OP<
 
 EXIT
 
