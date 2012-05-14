@@ -12,7 +12,7 @@ using namespace std;
 
 //All of the types and operations that I currently support
 enum Types { INTEGER, DOUBLE, STRING };
-enum Operations { ADD, SUB, MULT, DIV, MOD, LESS_THAN, LESS_THAN_OR_EQUAL, EQUAL, GREATER_THAN_OR_EQUAL, GREATER_THAN};
+enum Operations { ADD, SUB, MULT, DIV, MOD, LESS_THAN, LESS_THAN_OR_EQUAL, EQUAL, GREATER_THAN_OR_EQUAL, GREATER_THAN, NOT_EQUAL};
 
 void error(string s)
 {

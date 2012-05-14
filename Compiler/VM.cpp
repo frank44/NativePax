@@ -1,7 +1,7 @@
 #include "tools.h"
 using namespace std;
 
-const bool DEBUG = true;
+const bool DEBUG = false;
 
 ifstream fin;
 
@@ -220,6 +220,8 @@ void handleOperation(int op, bool isCond = false)
 			*pval = *(int*)a.ptr >= *(int*)b.ptr;
 		else if (op == GREATER_THAN)
 			*pval = *(int*)a.ptr > *(int*)b.ptr;
+		else if (op == NOT_EQUAL)
+			*pval = *(int*)a.ptr != *(int*)b.ptr;
 		else error("int type does not support this operation");
 
 		if (pointerCt[a.ptr] == 0) delete a.ptr;
@@ -260,6 +262,8 @@ void handleOperation(int op, bool isCond = false)
 			*(int*)pval = *(double*)a.ptr >= *(double*)b.ptr;
 		else if (op == GREATER_THAN)
 			*(int*)pval = *(double*)a.ptr > *(double*)b.ptr;
+		else if (op == NOT_EQUAL)
+			*(int*)pval = *(double*)a.ptr != *(double*)b.ptr;
 		else error("Double type does not support this operation");
 
 		if (pointerCt[a.ptr] == 0) delete a.ptr;
@@ -287,6 +291,8 @@ void handleOperation(int op, bool isCond = false)
 			*(int*)pval = *(string*)a.ptr >= *(string*)b.ptr;
 		else if (op == GREATER_THAN)
 			*(int*)pval = *(string*)a.ptr > *(string*)b.ptr;
+		else if (op == NOT_EQUAL)
+			*(int*)pval = *(string*)a.ptr != *(string*)b.ptr;
 		else error("STRING type does not support this operation");
 
 		if (pointerCt[a.ptr] == 0) delete a.ptr;
@@ -443,6 +449,7 @@ int main (int argc, char *argv[])
 		else if (cmd == "OP=") handleOperation(EQUAL, true);
 		else if (cmd == "OP>=") handleOperation(GREATER_THAN_OR_EQUAL, true);
 		else if (cmd == "OP>") handleOperation(GREATER_THAN, true);
+		else if (cmd == "OP!=") handleOperation(NOT_EQUAL, true);
 		else if (cmd == "PRINT") handlePrint(tk);
 		else if (cmd == "JMP") handleJump(tk);
 		else if (cmd == "JZ") handleJump(tk, true);

@@ -18,6 +18,9 @@
     <None Include="inst.txt">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="code.txt">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="tools.h">

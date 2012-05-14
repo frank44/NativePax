@@ -75,13 +75,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="VM.cpp" />
-  </ItemGroup>
-  <ItemGroup>
+    <None Include="code.txt" />
     <None Include="inst.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="tools.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="VM.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

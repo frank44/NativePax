@@ -16,6 +16,7 @@ Commands
 
                 Example: PUSH 5
                          PUSH my_var
+                         PUSH "hello world"
         LOAD {variable_name} - sets the variable equal to the top of the stack being mindful of the old value that it pointed to. If this was the last pointer to some value it is deleted.
                 Currently supports - int, double, string
 	
@@ -37,9 +38,11 @@ Commands
               - if you give it a variable name it prints the corresponding value
               - you can also just give it a literal constant
 
-        OP{<, <=, =, >=, >} - comparison operators, pops the top two stack elements, applies the operation, and then pushes the result (0 or 1)
+        OP{<, <=, =, >=, >, !=} - comparison operators, pops the top two stack elements, applies the operation, and then pushes the result (0 or 1)
 	        Currently supports - int, double, string
 	        
+				Example: OP= (checks for equality)
+				 
 	    JMP {label} - jump to the corresponding label.     
 
         JZ {label} - jump if zero is at the top of the stack, note that if activated the zero is removed during the jump.
