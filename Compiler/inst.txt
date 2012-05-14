@@ -1,0 +1,8 @@
+.START
+PUSH 5
+LOAD x
+POP
+PUSH 6
+LOAD x
+POP
+.END
