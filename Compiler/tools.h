@@ -246,3 +246,16 @@ struct Tokenizer
 	}
 };
 
+bool isLabel(string & s) //sanitizes the string in the process
+{
+	Tokenizer tk(s);
+	string label = tk.nextToken();
+
+	if (label.size() >= 2 && label[0] == '.' && tk.isEmpty())
+	{
+		s = label;
+		return true;
+	}
+
+	return false;
+}

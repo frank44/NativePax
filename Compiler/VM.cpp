@@ -20,6 +20,7 @@ stack< Object > stk; //object stack
 map< string, Object > memory; //where all variables are stored
 map< void*, int > pointerCt; //naive garbage collector (counts how many variables are pointing to that object)
 map<string, streamoff> jumpLoc; //locations of each label in the source file
+stack<streamoff> pastLoc; //stack of previous jump locations (for when using recursion or nested calls)
 
 void handlePush(Tokenizer tk)
 {
@@ -44,6 +45,8 @@ void handlePush(Tokenizer tk)
 void handleLoad(Tokenizer tk)
 {
 	string name = tk.nextToken();
+	if (!isValidVariableName(name))
+		error("Invalid variable name - " + name);
 
 	if (stk.empty())
 		error("Can't load with an empty stack - " + name);
@@ -163,6 +166,27 @@ void handlePrint(Tokenizer tk)
 	else error("Cannot print - " + s);
 }
 
+void handleJump(Tokenizer tk)
+{
+	string label = tk.nextToken();
+	if (jumpLoc.find(label) == jumpLoc.end())
+		error("Cannot JMP to unknown location - " + label);
+
+	pastLoc.push(fin.tellg());
+	fin.clear();
+	fin.seekg(jumpLoc[label], ios::beg);
+}
+
+void handleRet()
+{
+	if (pastLoc.empty())
+		error("Cannot RET with a JMP");
+
+	fin.clear();
+	fin.seekg(pastLoc.top(), ios::beg);
+	pastLoc.pop();
+}
+
 void printTrace()
 {
 	cerr << "Done\n\nContents of Memory\n-------------------------\n";
@@ -180,7 +204,7 @@ void printTrace()
 	}
 	cerr << "-------------------------\n";
 
-	cerr << "\nContents of Pointer Count\n-------------------------\n";
+	cerr << "\nContents of Garbage Tracker\n-------------------------\n";
 	for (map<void*, int>::iterator it = pointerCt.begin(); it!=pointerCt.end(); it++)
 		cerr << it->first << " = " << it->second  << " == " << *(int*)it->first << endl;
 
@@ -194,18 +218,27 @@ int main (int argc, char *argv[])
 	else error("Invalid console arguments");
 
 	string str;
-	fin >> str;
-	
-	if (str != ".START") 
-		error("Code should start with .START");
-
-	getline(fin, str); //update cursor
-
-	while (true)
+	while ( getline(fin, str) ) //one scan to memoize all jump locations/functions
 	{
-		if (fin.eof()) 
-			error("no '.END' found");
-		
+		if (isLabel(str)) //must be on its own line starting with a '.'
+		{
+			if (jumpLoc.find(str) != jumpLoc.end()) //repeated a jump label
+				error("Repeated a jump label - " + str);
+
+			jumpLoc[str] = fin.tellg();
+			if (DEBUG)
+				cerr << "Memoized label :: " << str << " - " << jumpLoc[str] << endl;
+		}
+	}
+
+	if (jumpLoc.find(".START") == jumpLoc.end()) //no .START found!
+		error("Could not find .START");
+
+	fin.clear(); //reset fstream flags
+	fin.seekg( jumpLoc[".START"], ios::beg); //jump to .START function
+
+	while (!fin.eof())
+	{
 		getline(fin, str);
 		Tokenizer tk(str);
 		string cmd = tk.nextToken();
@@ -213,7 +246,7 @@ int main (int argc, char *argv[])
 		if (DEBUG) cerr << "At :: " << cmd << endl;
 
 		if (cmd == "") continue; //blank line, whoops
-		else if (cmd == ".END") break; 
+		else if (cmd == "EXIT") break;  
 		else if (cmd == "PUSH") handlePush(tk);
 		else if (cmd == "LOAD") handleLoad(tk);
 		else if (cmd == "POP") handlePop();
@@ -229,6 +262,8 @@ int main (int argc, char *argv[])
 		else if (cmd == "OP>=") handleOperation(GREATER_THAN_OR_EQUAL);
 		else if (cmd == "OP>") handleOperation(GREATER_THAN);
 		else if (cmd == "PRINT") handlePrint(tk);
+		else if (cmd == "JMP") handleJump(tk);
+		else if (cmd == "RET") handleRet();
 		else error("Do not recognize cmd - " + cmd);
 	}
 
