@@ -5,6 +5,7 @@ An purely stack based implementation of an assembly-like language with a simple 
 Notes:<br>
 The system stack contains pointers to the actual values in the heap.<br>
 Code must stand and end with the following labels .start & .end<br>
+Labels are lines with a single token than begins with a '.'<br>
 
 Commands
 <br>
@@ -34,4 +35,12 @@ Commands
               - you can also just give it a literal constant
 
         OP{<, <=, =, >=, >} - comparison operators, pops the top two stack elements, applies the operation, and then pushes the result (0 or 1)
-	        Currently supports - int        
+	        Currently supports - int    
+	        
+	    JMP {label} - jump to the corresponding label.     
+
+        RET - jumps back a to just after the previous JMP call
+        
+        EXIT - stops the program immediately
+        
+        
