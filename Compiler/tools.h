@@ -10,8 +10,8 @@
 #include <sstream>
 using namespace std;
 
-//All of the types that I currently support
-enum Types { INTEGER };
+//All of the types and operations that I currently support
+enum Types { INTEGER, DOUBLE };
 enum Operations { ADD, SUB, MULT, DIV, MOD, LESS_THAN, LESS_THAN_OR_EQUAL, EQUAL, GREATER_THAN_OR_EQUAL, GREATER_THAN};
 
 void error(string s)
@@ -29,7 +29,7 @@ struct Object
 	Object(int a, void * b)
 	{ type = a; ptr = b; }
 
-	/*~Object()
+	/*~Object() This is done manually elsewhere
 	{ 
 		if (ptr != NULL)
 			delete ptr; 
@@ -40,14 +40,19 @@ struct Object
 		stringstream ss;
 		if (type == INTEGER)
 			ss << *(int*)ptr;
+		else if (type == DOUBLE)
+			ss << *(double*)ptr;
 		else error("Unidentified Object type, cannot print it.");
 
 		return ss.str();
 	}
 };
 
-bool isValidIntConst(string a) //checks if the string represents a valid literal int
+//(WARNING: does not check for overflow) - I'll leave this up to the programmer to take care of (for now)
+bool isValidIntConst(string a) //checks if the string represents a valid literal int 
 {
+	if (a.length() == 0) return false;
+
 	int inx = 0;
 	if (a[0] == '-') inx++;
 
@@ -64,6 +69,39 @@ bool isValidVariableName(string a) //valid regex = [_A-Za-z][_0-9A-Za-z]*
 		ok &= isalpha(a[i]) || isdigit(a[i]) || a[i]=='_';
 
 	return ok;
+}
+
+//WARNING: does not check for overflow
+bool isValidDoubleConst(string a) //checks if the string represents a valid literal int 
+{
+	if ((int)a.length() == 0) return false;
+
+	int x = 0;
+	for (; x<(int)a.length(); x++)
+		if (a[x] == '.') break;
+
+	if (x == (int)a.length()) //no decimal found
+	{
+		return isValidIntConst(a.substr(0,x));
+	}
+	else
+	{
+		if (a.length() == 1) return false;
+
+		for (int i=x+1; i<(int)a.length(); i++)
+			if (!isdigit(a[i])) return false;
+
+		return a.substr(0,x)=="" || isValidIntConst(a.substr(0,x));
+	}
+
+}
+
+double toDouble(string s) //string -> double
+{
+	stringstream ss(s);
+	double ret;
+	ss >> ret;
+	return ret;
 }
 
 int toNum(string s) //string -> integer

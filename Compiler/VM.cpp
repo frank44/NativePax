@@ -29,6 +29,12 @@ void handlePush(Tokenizer tk)
 
 		stk.push(memory[s]);
 	}
+	else if (isValidDoubleConst(s))
+	{
+		double * ptr = new double;
+		*ptr = toDouble(s);
+		stk.push(Object(DOUBLE, ptr));
+	}
 }
 
 void handleLoad(Tokenizer tk)
@@ -79,11 +85,17 @@ void handleRead(Tokenizer tk)
 {
 	string type = tk.nextToken();
 
-	if (type == "INT")
+	if (type == "int")
 	{
 		int * ptr = new int;
 		cin >> *ptr;
 		stk.push(Object(INTEGER, ptr));
+	}
+	else if (type == "double")
+	{
+		double * ptr = new double;
+		cin >> *ptr;
+		stk.push(Object(DOUBLE, ptr));
 	}
 	else error("Read does not support that type");
 }
@@ -134,6 +146,43 @@ void handleOperation(int op)
 
 		stk.push(Object(INTEGER, pval));
 	}
+	else if (a.type == DOUBLE)
+	{
+		double * pval = new double;
+
+		if (op == ADD)
+			*pval = *(double*)a.ptr + *(double*)b.ptr;
+		else if (op == SUB)
+			*pval = *(double*)a.ptr - *(double*)b.ptr;
+		else if (op == MULT)
+			*pval = *(double*)a.ptr * *(double*)b.ptr;
+		else if (op == DIV)
+		{
+			if (*(double*)b.ptr == 0) error("Division by ZERO");
+			*pval = *(double*)a.ptr / *(double*)b.ptr;
+		}
+		else if (op == MOD)
+		{
+			if (*(double*)b.ptr == 0) error("Modulo by ZERO");
+			*pval = *(double*)a.ptr - floor(*(double*)a.ptr / *(double*)b.ptr) * *(double*)b.ptr; // (a - a/b*b) == (a = a%b)
+		}
+		else if (op == LESS_THAN)
+			*pval = *(double*)a.ptr < *(double*)b.ptr;
+		else if (op == LESS_THAN_OR_EQUAL)
+			*pval = *(double*)a.ptr <= *(double*)b.ptr;
+		else if (op == EQUAL)
+			*pval = *(double*)a.ptr == *(double*)b.ptr;
+		else if (op == GREATER_THAN_OR_EQUAL)
+			*pval = *(double*)a.ptr >= *(double*)b.ptr;
+		else if (op == GREATER_THAN)
+			*pval = *(double*)a.ptr > *(double*)b.ptr;
+		else error("int type does not support this operation");
+
+		if (pointerCt[a.ptr] == 0) delete a.ptr;
+		if (pointerCt[b.ptr] == 0) delete b.ptr;
+
+		stk.push(Object(DOUBLE, pval));
+	}
 	else error("Unidentified type while performing an operation" + toStr(a.type));
 }
 
@@ -150,7 +199,7 @@ void handlePrint(Tokenizer tk)
 
 		cout << memory[s].valToStr() << endl;
 	}
-	else if (isValidIntConst(s))
+	else if (isValidIntConst(s) || isValidDoubleConst(s))
 		cout << s << endl;
 	else error("Cannot print - " + s);
 }
@@ -204,7 +253,7 @@ void printTrace()
 
 	cerr << "\nContents of Garbage Tracker\n-------------------------\n";
 	for (map<void*, int>::iterator it = pointerCt.begin(); it!=pointerCt.end(); it++)
-		cerr << it->first << " = " << it->second  << " == " << *(int*)it->first << endl;
+		cerr << it->first << " = " << it->second  << " == " << *(int*)it->first << " == " << *(double*)it->first << endl;
 
 	cerr << "-------------------------\n";
 }
