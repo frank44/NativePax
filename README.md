@@ -1,4 +1,4 @@
-<h1>aXembly specifications</h1>
+<h1>Paxembly specifications</h1>
 
 An purely stack based implementation of an assembly-like language with a simple garbage collector and auto-up-casting. 
 
