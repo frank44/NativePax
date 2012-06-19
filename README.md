@@ -1,6 +1,6 @@
 <h1>Paxembly specifications</h1>
 
-An purely stack based implementation of an assembly-like language with a simple garbage collector and auto-up-casting. 
+A purely stack based implementation of an assembly-like language with a simple garbage collector and auto-up-casting. 
 
 Notes:<br>
 The system stack contains pointers to the actual values in the heap.<br>
