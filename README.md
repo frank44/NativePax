@@ -5,8 +5,8 @@ An purely stack based implementation of an assembly-like language with a simple 
 Notes:<br>
 The system stack contains pointers to the actual values in the heap.<br>
 Labels are lines with a single token than begins with a '.'<br>
-All code must contain a .START label (this label will serve as the program's entry point/main)
-The up-cast hierarchy is string > double > int 
+All code must contain a .START label (this label will serve as the program's entry point/main) <br>
+The up-cast hierarchy is string > double > int <br>
 
 Commands
 <br>
